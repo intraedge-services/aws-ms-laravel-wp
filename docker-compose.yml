@@ -1,0 +1,50 @@
+version: "3.7"
+
+#Docker Networks
+networks:
+  app-network:
+    driver: bridge
+
+#Docker Volumes
+volumes:
+  mysqldata:
+    driver: local
+
+services:
+  db:
+    image: mysql:5.6.47
+    restart: unless-stopped
+    tty: true
+    ports:
+      - "3306:3306"
+    environment:
+      MYSQL_DATABASE: laraveldb
+      MYSQL_ROOT_PASSWORD: laravel
+      SERVICE_TAGS: dev
+      SERVICE_NAME: mysql
+    networks:
+      - app-network
+    volumes:
+      - mysqldata:/var/lib/mysql/
+
+  web:
+    image: nginx:1.17.8-alpine
+    restart: unless-stopped
+    tty: true
+    ports:
+      - "443:443"
+    networks:
+      - app-network
+    volumes:
+      - ./webapp:/var/www/html
+      - ./nginx/conf.d/:/etc/nginx/conf.d/
+      - ./nginx/ssl/:/etc/nginx/ssl/
+
+  app:
+    build:
+      context: .
+    networks:
+      - app-network
+    volumes:
+    - ./webapp:/var/www/html
+    - ./webapp/.env.local-docker:/var/www/html/.env

@@ -1,0 +1,70 @@
+---
+AWSTemplateFormatVersion: 2010-09-09
+
+Description: VPC Security Stack
+
+Parameters:
+  VpcId:
+    Type: "AWS::EC2::VPC::Id"
+    Description: "VPC Id"
+
+Resources:
+  AppSecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      VpcId: !Ref VpcId
+      Tags:
+        - Key: Name
+          Value: Application
+      GroupDescription: Access to Application
+
+  AppLambdaDbAccessSecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      VpcId: !Ref VpcId
+      Tags:
+        - Key: Name
+          Value: AppLambdaDbAccess
+      GroupDescription: SG For Lambda Application to access DB
+
+  AuroraSecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      VpcId: !Ref VpcId
+      GroupDescription: Access to aurora database
+      Tags:
+        - Key: Name
+          Value: Aurora
+      SecurityGroupIngress:
+        - SourceSecurityGroupId: !Ref AppSecurityGroup
+          Description: Allow access from application
+          FromPort: '3306'
+          ToPort: '3306'
+          IpProtocol: 'TCP'
+        - SourceSecurityGroupId: !Ref AppLambdaDbAccessSecurityGroup
+          Description: Allow access for lambda functions to access database
+          FromPort: '3306'
+          ToPort: '3306'
+          IpProtocol: 'TCP'
+
+Outputs:
+
+  VpcId:
+    Value: !Ref VpcId
+    Export:
+      Name: !Sub '${AWS::StackName}-VpcId'
+
+  AuroraSecurityGroup:
+    Value: !Ref AuroraSecurityGroup
+    Export:
+      Name: !Sub '${AWS::StackName}-AuroraSecurityGroup'
+
+  AppSecurityGroup:
+    Value: !Ref AppSecurityGroup
+    Export:
+      Name: !Sub '${AWS::StackName}-AppSecurityGroup'
+
+  AppLambdaDbAccessSecurityGroup:
+    Value: !Ref AppLambdaDbAccessSecurityGroup
+    Export:
+      Name: !Sub '${AWS::StackName}-AppLambdaDbAccessSecurityGroup'

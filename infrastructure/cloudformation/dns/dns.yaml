@@ -1,0 +1,29 @@
+AWSTemplateFormatVersion: "2010-09-09"
+
+Parameters:
+  Environment:
+    Type: "String"
+    Description:  Zone environment
+    MinLength: 2
+    AllowedValues:
+      - dev
+      - prod
+
+  Domain:
+    Type: String
+    Description: "DNS Domain
+    MinLength: 5
+
+
+Resources:
+  AppDNS:
+    Type: AWS::Route53::HostedZone
+    Properties:
+      HostedZoneConfig:
+        Comment: !Sub ${Environment} Zone
+      Name: !Ref Domain
+
+Outputs:
+  AppDNSZone:
+    Description: DNS Zone ID
+    Value: !Ref AppDNS
